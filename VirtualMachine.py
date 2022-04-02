@@ -23,13 +23,14 @@ class VirtualMachine:
         return res
 
 
-    def run(self, line):
+    def run(self, line, debug):
         # split the bitstring by bytes
         chunk_size = 8
         bytes = [line[i:i+chunk_size] for i in range(0, len(line), chunk_size)]
 
         # check if it is an assignment
         start = 0 
+        lhs_idx = -1
         if(bytes[2] == ERTEKADAS):
             lhs_idx = self.byteStringToNumber(bytes[1])
             lhs = self.registers[lhs_idx]
@@ -37,7 +38,7 @@ class VirtualMachine:
 
         # iterate over the byte string
         op = ""
-        for i, b in enumerate(bytes):
+        for i, b in enumerate(bytes[start:]):
             # even indices are the "type markers"
             if(i % 2 == 0):
                 if(b == SZAM):
@@ -53,28 +54,38 @@ class VirtualMachine:
             # register + number means the numberth register
             else:
                 if(op == SZAM):
-                    self.stack.append(self.byteStringToNumber(b))
+                    bs = self.byteStringToNumber(b)
+                    self.stack.append(bs)
+                    print(f"append {bs}")  if debug else 0
                 elif(op == MUVELET):
                     if(b == ADD):
                         n = self.stack.pop()
                         m = self.stack.pop()
                         self.stack.append(n+m)
+                        print(f"append {n}+{m}") if debug else 0
                     elif(b == SUB):
                         n = self.stack.pop()
                         m = self.stack.pop()
-                        self.stack.append(n-m)
+                        self.stack.append(m-n)
+                        print(f"append {m}-{n}") if debug else 0
                     elif(b == MUL):
                         n = self.stack.pop()
                         m = self.stack.pop()
                         self.stack.append(n*m)
+                        print(f"append {n}*{m}") if debug else 0
                     elif(b == DIV):
                         n = self.stack.pop()
                         m = self.stack.pop()
-                        self.stack.append(n/m)
+                        self.stack.append(m/n)
+                        print(f"append {m}+{n}") if debug else 0
                 elif(op == VALTOZO):
                     register_idx = self.byteStringToNumber(b)
+                    print(f"append {self.registers[register_idx]}") if debug else 0
                     self.stack.append(self.registers[register_idx])
-            
-        return self.stack[0]
+
+        res = self.stack.pop()
+        if(lhs_idx != -1):
+            self.registers[lhs_idx] = res
+        return res
 
 
