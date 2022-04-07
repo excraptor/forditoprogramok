@@ -1,3 +1,4 @@
+import enum
 from VirtualMachine import VirtualMachine
 import sys
 
@@ -15,8 +16,10 @@ def main(args):
         debug = True
     with open(args[1]) as f:
         for test in f.readlines():
-            print(vm.run(test, debug))
-    print(vm.registers[:3])
+            print(vm.run(test.strip(), debug))
+    for idx, r in enumerate(vm.registers):
+        if (r != 0): print(f"register: {idx}\tvalue: {r}")
+    
 if(__name__ == "__main__"):
 
     main(sys.argv)

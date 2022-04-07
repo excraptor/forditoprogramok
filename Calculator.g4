@@ -9,6 +9,8 @@ options {
     public static final String MUVELET     = "00000001";
     public static final String VALTOZO     = "00000010";
     public static final String ERTEKADAS   = "00000011";
+    public static final String READ        = "00000100";
+
     // public static final String NUM         = "SZAM";
     // public static final String MUVELET     = "MUVELET";
     // public static final String VALTOZO     = "VALTOZO";
@@ -40,6 +42,14 @@ options {
         return new StringBuilder(res).reverse().toString();
     }
 
+    public int extractNumbers(String str, boolean isRegister) { 
+        char beginParentheses = isRegister? '[' : '(';
+        char endParentheses = isRegister? ']' : ')';
+        String number = str.substring(str.indexOf(beginParentheses)+1, str.indexOf(endParentheses));
+        //System.out.println("valtozo szam: " + number);
+        return Integer.parseInt(number);
+    }
+
 
     public static void main(String[] args) throws Exception {
         CalculatorLexer lex = new CalculatorLexer(new ANTLRFileStream(args[0]));
@@ -55,7 +65,7 @@ start
 
 line
     : REGISTER 
-    { System.out.print(VALTOZO + toByteString(Integer.parseInt($REGISTER.text.substring(2,3)))+ERTEKADAS); }
+    { System.out.print(VALTOZO + toByteString(extractNumbers($REGISTER.text, true))+ERTEKADAS); }
     '=' expr {System.out.print("\n");}
     | expr {System.out.print("\n");}
     ;
@@ -74,7 +84,8 @@ addop
 fct  
     : SZAM { System.out.print(NUM + toByteString($SZAM.int)); }
     | '(' expr ')' 
-    | REGISTER { System.out.print(VALTOZO + toByteString(Integer.parseInt($REGISTER.text.substring(2,3)))); }
+    | REGISTER { System.out.print(VALTOZO + toByteString(extractNumbers($REGISTER.text, true))); }
+    | READOP { System.out.print(READ + toByteString(extractNumbers($READOP.text, false))); }
     ;
 
 LF       : '\n' ;
@@ -82,4 +93,5 @@ WS       : [ \t\r]+ ->skip ;
 SZAM     : [0-9]+('.' [0-9]+)? ;
 OPADD    : '+' | '-' ;
 OPMUL    : '*' | '/' ;
-REGISTER   : 'm[' ([0-9]|[1-9][0-9]) ']';
+REGISTER : 'm[' ([0-9]|[1-9][0-9]) ']';
+READOP    : 'read(' ([0-9]|[1-9][0-9]) ')';
